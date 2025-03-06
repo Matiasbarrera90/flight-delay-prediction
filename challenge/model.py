@@ -158,7 +158,7 @@ class DelayModel:
 
 if __name__ == "__main__":
     # Example usage
-    data = pd.read_csv('../data/data.csv')
+    data = pd.read_csv('/data/data.csv')
     model = DelayModel()
 
     # Preprocess data for training
