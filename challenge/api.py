@@ -1,7 +1,7 @@
 #api.py
 import fastapi
 import pandas as pd
-from model import DelayModel
+from challenge.model import DelayModel
 from pydantic import BaseModel
 from typing import List
 
