@@ -1,43 +1,57 @@
-#api.py
-import fastapi
+from fastapi import FastAPI, HTTPException
 import pandas as pd
 from challenge.model import DelayModel
-from pydantic import BaseModel
-from typing import List
+from pydantic import BaseModel, Field
+from typing import Optional
 
-app = fastapi.FastAPI()
+app = FastAPI()
 
-# Initialize model on startup
+# Train the model at startup
 model = DelayModel()
+data = pd.read_csv("data/data.csv") 
+X, y = model.preprocess(data, target_column="delay")
+model.fit(X, y)  # Train the model
 
 @app.get("/health", status_code=200)
 async def get_health() -> dict:
-    return {
-        "status": "OK"
-    }
+    return {"status": "OK"}
 
-
-# Define input data schema
 class FlightFeatures(BaseModel):
     OPERA: str
-    MES: int
-    TIPOVUELO: str
-    Fecha_I: str
-    Fecha_O: str
-
+    MES: int = Field(..., ge=1, le=12, description="Month must be between 1 and 12")
+    TIPOVUELO: str = Field(..., regex="^(I|N)$", description="TIPOVUELO must be 'I' (International) or 'N'")
+    Fecha_I: Optional[str] = Field(None, alias="Fecha-I")
+    Fecha_O: Optional[str] = Field(None, alias="Fecha-O")
 
 @app.post("/predict", status_code=200)
-async def post_predict(data: List[FlightFeatures]) -> dict:
+async def post_predict(data: dict):
     """
     Receives flight information and returns delay predictions.
     """
-    # Convert input to DataFrame
-    input_data = pd.DataFrame([item.dict() for item in data])
+    try:
+        flights = data.get("flights", None)
+        if not flights:
+            raise HTTPException(status_code=400, detail="Missing 'flights' key in request data.")
 
-    # Preprocess input data
-    X = model.preprocess(input_data)
+        # Ensure missing fields have default values
+        for flight in flights:
+            flight.setdefault("Fecha-I", "2024-01-01 00:00:00")
+            flight.setdefault("Fecha-O", "2024-01-01 00:00:00")
 
-    # Predict
-    predictions = model.predict(X)
+        # Validate input data
+        processed_flights = [FlightFeatures(**flight) for flight in flights]
 
-    return {"predictions": predictions}
+        # Convert input to DataFrame
+        input_data = pd.DataFrame([flight.dict(by_alias=True) for flight in processed_flights])
+
+        # Preprocess input data
+        X = model.preprocess(input_data)
+
+        # Predict using trained model
+        predictions = model.predict(X)
+
+        return {"predict": predictions}
+
+    except Exception as e:
+        print(f"Error in /predict: {e}")
+        raise HTTPException(status_code=400, detail=str(e))

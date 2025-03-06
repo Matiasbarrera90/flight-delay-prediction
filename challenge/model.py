@@ -11,8 +11,7 @@ class DelayModel:
     def __init__(
         self
     ):
-        self._model = None  # Model should be saved in this attribute
-        # Define top 10 features from previous analysis
+        self._model = None
         self._top_10_features = [
             "OPERA_Latin American Wings", "MES_7", "MES_10", "OPERA_Grupo LATAM",
             "MES_12", "TIPOVUELO_I", "MES_4", "MES_11", "OPERA_Sky Airline", "OPERA_Copa Air"
