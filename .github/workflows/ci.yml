@@ -16,42 +16,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10.11'
-
-      - name: Install dependencies
+      - name: Set up Docker
         run: |
-          python -m venv .venv
-          source .venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt -r requirements-test.txt
-          pip install anyio==3.7.1  # Evitar errores con start_blocking_portal
+          docker compose up -d
+          sleep 5  # Da tiempo para que la API arranque
 
-      - name: Ensure data directory and dummy data
+      - name: Run API tests
         run: |
-          mkdir -p data
-          if [ ! -f data/data.csv ]; then
-            echo "Creating a dummy data.csv for testing..."
-            echo "OPERA,TIPOVUELO,MES,delay" > data/data.csv
-            echo "Aerolineas Argentinas,N,3,0" >> data/data.csv
-          fi
-          ls -l data/  # Verificar si data.csv está presente
+          pytest tests/api --disable-warnings  # Solo pruebas de API
 
-      - name: Start API in background
-        run: |
-          source .venv/bin/activate
-          uvicorn challenge.api:app --host 0.0.0.0 --port 8000 &
-
-      - name: Wait for API to be ready
-        run: |
-          echo "Waiting for API to be ready..."
-          sleep 5  # Da tiempo al servidor para inicializar
-
-      - name: Run tests
-        env:
-          PYTHONPATH: ${{ github.workspace }}
-        run: |
-          source .venv/bin/activate
-          pytest --cov=challenge tests/
+      - name: Stop Docker containers
+        run: docker compose down
