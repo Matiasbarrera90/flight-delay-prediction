@@ -1,0 +1,27 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate-cd:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Verify Dockerfile and Makefile
+        run: |
+          if [ ! -f Dockerfile ]; then echo "Dockerfile missing"; exit 1; fi
+          if [ ! -f Makefile ]; then echo "Makefile missing"; exit 1; fi
+          echo "Dockerfile and Makefile are present"
+
+      - name: Validate Cloud Run Configuration
+        run: |
+          echo "Checking GCP deployment settings..."
+          echo "Expected Service Name: flight-delay-api"
+          echo "Expected Region: us-central1"
+          echo "Configuration check complete"

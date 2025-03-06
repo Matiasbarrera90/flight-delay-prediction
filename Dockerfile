@@ -18,7 +18,7 @@ RUN pip install -r requirements-test.txt
 COPY . .
 
 # Expose FastAPI's default port
-EXPOSE 8000
+EXPOSE 8080
 
 # Command to run the FastAPI application
-CMD ["uvicorn", "challenge.api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "challenge.api:app", "--host", "0.0.0.0", "--port", "8080"]
