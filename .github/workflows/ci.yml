@@ -26,6 +26,21 @@ jobs:
           python -m venv .venv
           source .venv/bin/activate
           pip install -r requirements.txt -r requirements-test.txt
+          pip install anyio==3.7.1  # Fijar versión compatible
+
+      - name: Check if data.csv exists
+        run: |
+          mkdir -p data
+          if [ ! -f data/data.csv ]; then
+            echo "Creating a dummy data.csv for testing..."
+            echo "OPERA,TIPOVUELO,MES,delay" > data/data.csv
+            echo "Aerolineas Argentinas,N,3,0" >> data/data.csv
+          fi
+
+      - name: Start API in background
+        run: |
+          source .venv/bin/activate
+          uvicorn challenge.api:app --host 0.0.0.0 --port 8000 &
 
       - name: Run tests
         run: |
