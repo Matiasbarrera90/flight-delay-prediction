@@ -28,7 +28,6 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt -r requirements-test.txt
           pip install anyio==3.7.1  # Evitar errores con start_blocking_portal
-
       - name: Ensure data directory and dummy data
         run: |
           mkdir -p data
@@ -38,17 +37,14 @@ jobs:
             echo "Aerolineas Argentinas,N,3,0" >> data/data.csv
           fi
           ls -l data/  # Verificar si data.csv está presente
-
       - name: Start API in background
         run: |
           source .venv/bin/activate
           uvicorn challenge.api:app --host 0.0.0.0 --port 8000 &
-
       - name: Wait for API to be ready
         run: |
           echo "Waiting for API to be ready..."
           sleep 5  # Da tiempo al servidor para inicializar
-
       - name: Run tests
         env:
           PYTHONPATH: ${{ github.workspace }}
