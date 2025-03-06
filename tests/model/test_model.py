@@ -29,7 +29,8 @@ class TestModel(unittest.TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.model = DelayModel()
-         # Obtiene la ruta absoluta del archivo data.csv
+
+  
         base_dir = os.path.dirname(os.path.abspath(__file__))  
         data_path = os.path.join(base_dir, "..", "..", "data", "data.csv") 
 
@@ -37,6 +38,10 @@ class TestModel(unittest.TestCase):
             raise FileNotFoundError(f"Data file not found: {data_path}")
 
         self.data = pd.read_csv(filepath_or_buffer=data_path)
+
+      
+        features, target = self.model.preprocess(self.data, target_column="delay")
+        self.model.fit(features, target)
         
 
     def test_model_preprocess_for_training(
